@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>USDT Tracker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <h1>Binance P2P USDT Tracker</h1>
 
-  <label for="currency">Select Currency:</label>
+  <label for="currency">Selecciona moneda:</label>
   <select id="currency">
     <option value="ARS">ARS</option>
     <option value="BRL">BRL</option>
@@ -30,11 +30,14 @@
     const chart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: ['Now'],
+        labels: ['Ahora'],
         datasets: [{
-          label: 'Price (USDT)',
+          label: 'Precio promedio (USDT)',
           data: [0],
-          borderWidth: 2
+          borderColor: 'blue',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.1
         }]
       },
       options: {
@@ -48,36 +51,46 @@
     });
 
     async function fetchPrice(currency) {
-      const response = await fetch(`https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          asset: "USDT",
-          fiat: currency,
-          tradeType: "SELL",
-          page: 1,
-          rows: 5,
-          merchantCheck: false
-        })
-      });
+      try {
+        const response = await fetch('/api/proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            asset: "USDT",
+            fiat: currency,
+            tradeType: "SELL",
+            page: 1,
+            rows: 5,
+            merchantCheck: false
+          })
+        });
+        const data = await response.json();
 
-      const data = await response.json();
-      const prices = data.data.map(adv => parseFloat(adv.adv.price));
-      const average = prices.reduce((a, b) => a + b, 0) / prices.length;
+        if (!data.data || data.data.length === 0) {
+          alert('No se encontraron datos para ' + currency);
+          return;
+        }
 
-      chart.data.labels.push(new Date().toLocaleTimeString());
-      chart.data.datasets[0].data.push(average.toFixed(2));
-      chart.update();
+        const prices = data.data.map(adv => parseFloat(adv.adv.price));
+        const average = prices.reduce((a, b) => a + b, 0) / prices.length;
+
+        // Añadir nuevo dato al gráfico
+        chart.data.labels.push(new Date().toLocaleTimeString());
+        chart.data.datasets[0].data.push(average.toFixed(2));
+        chart.update();
+      } catch (error) {
+        alert('Error al obtener datos: ' + error.message);
+      }
     }
 
     const dropdown = document.getElementById('currency');
     dropdown.addEventListener('change', () => {
-      chart.data.labels = ['Now'];
+      chart.data.labels = ['Ahora'];
       chart.data.datasets[0].data = [0];
       fetchPrice(dropdown.value);
     });
 
-    fetchPrice('ARS'); // default
+    fetchPrice(dropdown.value); // carga inicial
   </script>
 </body>
 </html>
