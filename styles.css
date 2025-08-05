@@ -1,0 +1,30 @@
+body {
+  font-family: sans-serif;
+  margin: 20px;
+  padding: 0;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+h1 {
+  text-align: center;
+}
+
+label, select {
+  display: block;
+  margin: 20px auto;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto 30px;
+}
+
+.ad-banner {
+  text-align: center;
+  margin-top: 40px;
+  padding: 20px;
+  border: 1px dashed #aaa;
+}
